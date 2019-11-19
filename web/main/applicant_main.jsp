@@ -2,6 +2,8 @@
 <jsp:useBean id="applicant" class="edu.jsu.mcis.cs425.project2.BeanApplicant" scope="session" />
 <jsp:setProperty name="applicant" property="username" value="<%= request.getRemoteUser() %>" />
 
+<% applicant.setUserInfo(); %>
+
 <!DOCTYPE html>
 <html>
     
@@ -11,8 +13,9 @@
     </head>
     
     <body>
-        <h1>Hello, <jsp:getProperty name="applicant" property="username" />!</h1>
-        <a href="<%= request.getContextPath() %>/public/logout.jsp" target="_self">Log Out</a>
+        <h1>Hello, <jsp:getProperty name="applicant" property="displayname" />!</h1>
+        <a href="<%= request.getContextPath() %>/main/applicant_skills.jsp" target="_self">Select Your Skill(s)</a>
+        <br /><a href="<%= request.getContextPath() %>/public/logout.jsp" target="_self">Log Out</a>
     </body>
     
 </html>

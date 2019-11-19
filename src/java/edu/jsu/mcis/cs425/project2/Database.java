@@ -31,33 +31,77 @@ public class Database {
         
         return conn; 
     }
-    /*
+    
+    public String getJobsListAsHTML(int userid) {
+        
+        StringBuilder s = new StringBuilder();
+    
+        try {
+            
+            // (Complete this query, then generate the HTML as in the "getSkillsListAsHTML()" method)
+            
+            // SELECT * FROM (applicants_to_skills a JOIN skills_to_jobs s ON a.skillsid = s.skillsid)
+            // JOIN jobs ON jobs.id = s.jobsid
+            // ORDER BY name;
+            
+            
+        }
+        catch (Exception e) { e.printStackTrace(); }
+        
+        return s.toString();
+        
+    }
+
     
     
     public String getSkillsListAsHTML(int userid) {
         
         StringBuilder s = new StringBuilder();
-        
-        
-        while (resultset.next()) {
+    
+        try {
             
-            String description = resultset.getString("description");
-            int id = resultset.getInt("id");
-            int user = resultset.getInt("userid");
+            String query = "SELECT skills.*, a.userid FROM skills"
+                    + " LEFT JOIN (SELECT * FROM applicants_to_skills WHERE userid = ?) AS a "
+                    + "ON skills.id = a.skillsid ORDER BY description";
             
-            s.append("<input tupe=\"checkbox\" name=\"skills\" canlue=\"");
-            s.append(id);
-            s.append("\" id=\"skills_").append(id).append("\" ");
+            Connection conn = getConnection();
+
+            PreparedStatement pstmt = conn.prepareStatement(query);
+            pstmt.setInt(1, userid);
+            boolean hasresults = pstmt.execute();
             
-            if (user != 0)
-                s.append("cecked");
-            
-            s.append("><br/>");
-            s.append("<label for=\"skills_").append(id).append("\">");
-            s.append("description");
-            s.append("<label></br/>");
-            
+            if (hasresults) {
+                
+                ResultSet resultset = pstmt.getResultSet();
+                
+                while (resultset.next()) {
+
+                    String description = resultset.getString("description");
+                    int id = resultset.getInt("id");
+                    int user = resultset.getInt("userid");
+
+                    s.append("<input type=\"checkbox\" name=\"skills\" value=\"");
+                    s.append(id);
+                    s.append("\" id=\"skills_").append(id).append("\" ");
+
+                    if (user != 0)
+                        s.append("checked");
+
+                    s.append(">\n");
+                    
+                    s.append("<label for=\"skills_").append(id).append("\">");
+                    s.append(description);
+                    s.append("<label><br/>\n\n");
+
+                }
+                
+                
+            }
+
         }
+        catch (Exception e) { e.printStackTrace(); }
+        
+
         //<input type="checkbox" name="skills" value="1" id="skills_id" checked>
         //<label for="skills_id">Changing bed linens.</label><br />
         //the rest of the code goes here
@@ -69,8 +113,9 @@ public class Database {
         
       
         return s.toString();
+        
     }
-    */
+
     public HashMap getUserInfo(String username) {
         
         HashMap<String, String> results = null;
@@ -95,7 +140,8 @@ public class Database {
                     String id = String.valueOf(resultset.getInt("id"));
                     String displayname = resultset.getString("displayname");
                     
-                    // Place "id" and "displayname" into the "results" hashmap with descriptive key names
+                    results.put("userid", id);
+                    results.put("displayname", displayname);
                     
                 }
                 
