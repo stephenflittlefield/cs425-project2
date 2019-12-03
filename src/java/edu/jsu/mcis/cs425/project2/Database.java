@@ -7,6 +7,7 @@ import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.sql.DataSource;
 import java.sql.*;
+import java.util.Arrays;
 
 /**
  *
@@ -15,7 +16,7 @@ import java.sql.*;
 
 public class Database {
     
-    private Connection getConnection() {
+    public Connection getConnection() {
         
         Connection conn = null;
         
@@ -32,28 +33,143 @@ public class Database {
         return conn; 
     }
     
-    public String getJobsListAsHTML(int userid) {
+
+    public void setJobsList(int userid, String[] jobs) {
         
-        StringBuilder s = new StringBuilder();
-    
         try {
             
-            // (Complete this query, then generate the HTML as in the "getSkillsListAsHTML()" method)
+            String qDelete = "DELETE FROM applicants_to_jobs WHERE userid = ?";
+            String qInsert = "INSERT INTO applicants_to_jobs (userid, jobsid) VALUES (?, ?)";
             
-            // SELECT * FROM (applicants_to_skills a JOIN skills_to_jobs s ON a.skillsid = s.skillsid)
-            // JOIN jobs ON jobs.id = s.jobsid
-            // ORDER BY name;
+            // Delete any existing skill selections
+            
+            Connection conn = getConnection();
+            
+            PreparedStatement pDelete = conn.prepareStatement(qDelete); // compile query
+            pDelete.setInt(1, userid);                                  // parametrize the query
+            int result = pDelete.executeUpdate();                       // execute the query
+            
+            // Insert new skill selections
+            
+            PreparedStatement pInsert = conn.prepareStatement(qInsert);
+            
+            for (int i = 0; i < jobs.length; ++i) {
+                pInsert.setInt(1, userid);
+                pInsert.setInt(2, Integer.parseInt( jobs[i] ));
+                pInsert.addBatch();
+            }
+            
+            int[] results = pInsert.executeBatch();
+            
+            System.err.println( "Results: " + Arrays.toString(results) );
+            
+            pInsert.close();
+            pDelete.close();
             
             
         }
         catch (Exception e) { e.printStackTrace(); }
         
+    }
+    
+    
+    public String getJobsListAsHTML(int userid) {      
+            
+        StringBuilder s = new StringBuilder();
+    
+        try {
+            
+            String query = "SELECT jobs.id, jobs.name, a.userid FROM\n"
+                    + "jobs LEFT JOIN (SELECT * FROM applicants_to_jobs WHERE userid = ?) AS a\n"
+                    + "ON jobs.id = a.jobsid\n"
+                    + "WHERE jobs.id IN\n"
+                    + "(SELECT jobsid AS id FROM\n"
+                    + "(applicants_to_skills JOIN skills_to_jobs\n"
+                    + "ON applicants_to_skills.skillsid = skills_to_jobs.skillsid)\n"
+                    + "WHERE applicants_to_skills.userid = ?)\n"
+                    + "ORDER BY jobs.name";
+            
+            Connection conn = getConnection();
+
+            PreparedStatement pstmt = conn.prepareStatement(query);
+            pstmt.setInt(1, userid);
+            pstmt.setInt(2, userid);
+            
+            boolean hasresults = pstmt.execute();
+            
+            if (hasresults) {
+                
+                ResultSet resultset = pstmt.getResultSet();
+                
+                while (resultset.next()) {
+
+                    String description = resultset.getString("name");
+                    int id = resultset.getInt("id");
+                    int user = resultset.getInt("userid");
+
+                    s.append("<input type=\"checkbox\" name=\"jobs\" value=\"");
+                    s.append(id);
+                    s.append("\" id=\"jobs_").append(id).append("\" ");
+
+                    if (user != 0)
+                        s.append("checked");
+
+                    s.append(">\n");
+                    
+                    s.append("<label for=\"jobs_").append(id).append("\">");
+                    s.append(description);
+                    s.append("<label><br/>\n\n");
+
+                }
+                
+                
+            }
+
+        }
+        catch (Exception e) { e.printStackTrace(); }        
+      
         return s.toString();
         
     }
 
-    
-    
+    public void setSkillsList(int userid, String[] skills) {
+        
+        try {
+            
+            String qDelete = "DELETE FROM applicants_to_skills WHERE userid = ?";
+            String qInsert = "INSERT INTO applicants_to_skills (userid, skillsid) VALUES (?, ?)";
+            
+            // Delete any existing skill selections
+            
+            Connection conn = getConnection();
+            
+            PreparedStatement pDelete = conn.prepareStatement(qDelete); // compile query
+            pDelete.setInt(1, userid);                                  // parametrize the query
+            int result = pDelete.executeUpdate();                       // execute the query
+            
+            // Insert new skill selections
+            
+            PreparedStatement pInsert = conn.prepareStatement(qInsert);
+            
+            for (int i = 0; i < skills.length; ++i) {
+                pInsert.setInt(1, userid);
+                pInsert.setInt(2, Integer.parseInt( skills[i] ));
+                pInsert.addBatch();
+            }
+            
+            int[] results = pInsert.executeBatch();
+            
+            System.err.println( "Results: " + Arrays.toString(results) );
+            
+            pInsert.close();
+            pDelete.close();
+            
+            
+        }
+        catch (Exception e) { e.printStackTrace(); }
+        
+    }
+
     public String getSkillsListAsHTML(int userid) {
         
         StringBuilder s = new StringBuilder();

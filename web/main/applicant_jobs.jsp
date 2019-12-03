@@ -17,7 +17,7 @@
       <form id="jobsform" name="jobsform" method="post" action="applicant_report.jsp">
          <fieldset>
             <legend>Select Your Job(s):</legend>
-            <%-- <jsp:getProperty name="applicant" property="jobsList" /> --%>
+            <jsp:getProperty name="applicant" property="jobsList" />
             <input type="submit" value="Submit" />
          </fieldset>
       </form>

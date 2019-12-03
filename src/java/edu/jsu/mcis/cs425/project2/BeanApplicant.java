@@ -10,12 +10,13 @@ public class BeanApplicant {
     private int userid;
     
     private String[] skills;
+    private String[] jobs;
 
     
     public void setSkillsList() {
         
        Database db = new Database();
-       //db.setSkillsList(userid, skills);
+       db.setSkillsList(userid, skills);
        System.err.println( Arrays.toString(skills) );
        
     }
@@ -23,9 +24,14 @@ public class BeanApplicant {
     public String getJobsList() {
         
         Database db = new Database();
-        //return ( db.getJobsListAsHTML(userid) );
+        return ( db.getJobsListAsHTML(userid) );
         
-     }
+    }
+    
+    public void setJobsList() {
+       Database db = new Database();
+       db.setJobsList(userid, jobs);
+    }
     
     public String getSkillsList() {
         
@@ -74,6 +80,14 @@ public class BeanApplicant {
 
     public void setSkills(String[] skills) {
         this.skills = skills;
+    }
+
+    public String[] getJobs() {
+        return jobs;
+    }
+
+    public void setJobs(String[] jobs) {
+        this.jobs = jobs;
     }
     
     
